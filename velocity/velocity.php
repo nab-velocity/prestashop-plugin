@@ -2,7 +2,7 @@
 /*
  *  @author chetu
  *  @copyright  2007-2014 velocity NorthAmericanbancard.
- *  International Registered Trademark & Property of velocity NorthAmericanbancard.
+ *  $brief International Registered Trademark & Property of velocity NorthAmericanbancard.
  */
 
 if (!defined('_PS_VERSION_'))
@@ -13,32 +13,34 @@ class Velocity extends PaymentModule {
 	private $_postErrors = array();
 	private $_warnings = array();
 	private $_html = '';
-	public  $identitytoken;
-	public  $workflowid;
-	public  $applicationprofileid;
-	public  $merchantprofileid;
+	private static  $identitytoken;
+	private static  $applicationprofileid;
+	private static  $merchantprofileid;
+	private static  $workflowid;
 
 	/**
 	 * @brief Constructor
 	 */
+	 
 	public function __construct() {
 	
-		$this->name = 'velocity';
-		$this->tab = 'payments_gateways';
-		$this->version = '1.0.0';
+		$this->name = 'velocity';   // name of module
+		$this->tab = 'payments_gateways'; // module category name
+		$this->version = '1.0.0';  // version of module
 		$this->author = 'chetu';
 		$this->display = 'view';
 		$this->meta_title = $this->l('Velocity Merchant Expertise');
 		$this->currencies = true;
 		$this->currencies_mode = 'checkbox';
+		self::$identitytoken = 'PHNhbWw6QXNzZXJ0aW9uIE1ham9yVmVyc2lvbj0iMSIgTWlub3JWZXJzaW9uPSIxIiBBc3NlcnRpb25JRD0iXzdlMDhiNzdjLTUzZWEtNDEwZC1hNmJiLTAyYjJmMTAzMzEwYyIgSXNzdWVyPSJJcGNBdXRoZW50aWNhdGlvbiIgSXNzdWVJbnN0YW50PSIyMDE0LTEwLTEwVDIwOjM2OjE4LjM3OVoiIHhtbG5zOnNhbWw9InVybjpvYXNpczpuYW1lczp0YzpTQU1MOjEuMDphc3NlcnRpb24iPjxzYW1sOkNvbmRpdGlvbnMgTm90QmVmb3JlPSIyMDE0LTEwLTEwVDIwOjM2OjE4LjM3OVoiIE5vdE9uT3JBZnRlcj0iMjA0NC0xMC0xMFQyMDozNjoxOC4zNzlaIj48L3NhbWw6Q29uZGl0aW9ucz48c2FtbDpBZHZpY2U+PC9zYW1sOkFkdmljZT48c2FtbDpBdHRyaWJ1dGVTdGF0ZW1lbnQ+PHNhbWw6U3ViamVjdD48c2FtbDpOYW1lSWRlbnRpZmllcj5GRjNCQjZEQzU4MzAwMDAxPC9zYW1sOk5hbWVJZGVudGlmaWVyPjwvc2FtbDpTdWJqZWN0PjxzYW1sOkF0dHJpYnV0ZSBBdHRyaWJ1dGVOYW1lPSJTQUsiIEF0dHJpYnV0ZU5hbWVzcGFjZT0iaHR0cDovL3NjaGVtYXMuaXBjb21tZXJjZS5jb20vSWRlbnRpdHkiPjxzYW1sOkF0dHJpYnV0ZVZhbHVlPkZGM0JCNkRDNTgzMDAwMDE8L3NhbWw6QXR0cmlidXRlVmFsdWU+PC9zYW1sOkF0dHJpYnV0ZT48c2FtbDpBdHRyaWJ1dGUgQXR0cmlidXRlTmFtZT0iU2VyaWFsIiBBdHRyaWJ1dGVOYW1lc3BhY2U9Imh0dHA6Ly9zY2hlbWFzLmlwY29tbWVyY2UuY29tL0lkZW50aXR5Ij48c2FtbDpBdHRyaWJ1dGVWYWx1ZT5iMTVlMTA4MS00ZGY2LTQwMTYtODM3Mi02NzhkYzdmZDQzNTc8L3NhbWw6QXR0cmlidXRlVmFsdWU+PC9zYW1sOkF0dHJpYnV0ZT48c2FtbDpBdHRyaWJ1dGUgQXR0cmlidXRlTmFtZT0ibmFtZSIgQXR0cmlidXRlTmFtZXNwYWNlPSJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcyI+PHNhbWw6QXR0cmlidXRlVmFsdWU+RkYzQkI2REM1ODMwMDAwMTwvc2FtbDpBdHRyaWJ1dGVWYWx1ZT48L3NhbWw6QXR0cmlidXRlPjwvc2FtbDpBdHRyaWJ1dGVTdGF0ZW1lbnQ+PFNpZ25hdHVyZSB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC8wOS94bWxkc2lnIyI+PFNpZ25lZEluZm8+PENhbm9uaWNhbGl6YXRpb25NZXRob2QgQWxnb3JpdGhtPSJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzEwL3htbC1leGMtYzE0biMiPjwvQ2Fub25pY2FsaXphdGlvbk1ldGhvZD48U2lnbmF0dXJlTWV0aG9kIEFsZ29yaXRobT0iaHR0cDovL3d3dy53My5vcmcvMjAwMC8wOS94bWxkc2lnI3JzYS1zaGExIj48L1NpZ25hdHVyZU1ldGhvZD48UmVmZXJlbmNlIFVSST0iI183ZTA4Yjc3Yy01M2VhLTQxMGQtYTZiYi0wMmIyZjEwMzMxMGMiPjxUcmFuc2Zvcm1zPjxUcmFuc2Zvcm0gQWxnb3JpdGhtPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwLzA5L3htbGRzaWcjZW52ZWxvcGVkLXNpZ25hdHVyZSI+PC9UcmFuc2Zvcm0+PFRyYW5zZm9ybSBBbGdvcml0aG09Imh0dHA6Ly93d3cudzMub3JnLzIwMDEvMTAveG1sLWV4Yy1jMTRuIyI+PC9UcmFuc2Zvcm0+PC9UcmFuc2Zvcm1zPjxEaWdlc3RNZXRob2QgQWxnb3JpdGhtPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwLzA5L3htbGRzaWcjc2hhMSI+PC9EaWdlc3RNZXRob2Q+PERpZ2VzdFZhbHVlPnl3NVZxWHlUTUh5NUNjdmRXN01TV2RhMDZMTT08L0RpZ2VzdFZhbHVlPjwvUmVmZXJlbmNlPjwvU2lnbmVkSW5mbz48U2lnbmF0dXJlVmFsdWU+WG9ZcURQaUorYy9IMlRFRjNQMWpQdVBUZ0VDVHp1cFVlRXpESERwMlE2ZW92T2lhN0pkVjI1bzZjTk1vczBTTzRISStSUGRUR3hJUW9xa0paeEtoTzZHcWZ2WHFDa2NNb2JCemxYbW83NUFSWU5jMHdlZ1hiQUVVQVFCcVNmeGwxc3huSlc1ZHZjclpuUytkSThoc2lZZW4vT0VTOUdtZUpsZVd1WUR4U0xmQjZJZnd6dk5LQ0xlS0FXenBkTk9NYmpQTjJyNUJWQUhQZEJ6WmtiSGZwdUlablp1Q2l5OENvaEo1bHU3WGZDbXpHdW96VDVqVE0wU3F6bHlzeUpWWVNSbVFUQW5WMVVGMGovbEx6SU14MVJmdWltWHNXaVk4c2RvQ2IrZXpBcVJnbk5EVSs3NlVYOEZFSEN3Q2c5a0tLSzQwMXdYNXpLd2FPRGJJUFpEYitBPT08L1NpZ25hdHVyZVZhbHVlPjxLZXlJbmZvPjxvOlNlY3VyaXR5VG9rZW5SZWZlcmVuY2UgeG1sbnM6bz0iaHR0cDovL2RvY3Mub2FzaXMtb3Blbi5vcmcvd3NzLzIwMDQvMDEvb2FzaXMtMjAwNDAxLXdzcy13c3NlY3VyaXR5LXNlY2V4dC0xLjAueHNkIj48bzpLZXlJZGVudGlmaWVyIFZhbHVlVHlwZT0iaHR0cDovL2RvY3Mub2FzaXMtb3Blbi5vcmcvd3NzL29hc2lzLXdzcy1zb2FwLW1lc3NhZ2Utc2VjdXJpdHktMS4xI1RodW1icHJpbnRTSEExIj5ZREJlRFNGM0Z4R2dmd3pSLzBwck11OTZoQ2M9PC9vOktleUlkZW50aWZpZXI+PC9vOlNlY3VyaXR5VG9rZW5SZWZlcmVuY2U+PC9LZXlJbmZvPjwvU2lnbmF0dXJlPjwvc2FtbDpBc3NlcnRpb24+';
+		self::$applicationprofileid = '14644';
+		self::$merchantprofileid = 'PrestaShop Global HC';
+		self::$workflowid = '2317000001';
+		
 
-		$config = Configuration::getMultiple(array('VELOCITY_IDENTITY_TOKEN', 'VELOCITY_WORKFLOWID', 'VELOCITY_APPLICATIONPROFILEID', 'VELOCITY_MERCHANTPROFILEID'));
-		if (!empty($config['VELOCITY_IDENTITYTOKEN']))
-			$this->identitytoken = $config['VELOCITY_IDENTITYTOKEN'];
+		$config = Configuration::getMultiple(array('VELOCITY_WORKFLOWID', 'VELOCITY_MERCHANTPROFILEID'));
 		if (!empty($config['VELOCITY_WORKFLOWID']))
 			$this->workflowid = $config['VELOCITY_WORKFLOWID'];
-		if (!empty($config['VELOCITY_APPLICATIONPROFILEID']))
-			$this->applicationprofileid = $config['VELOCITY_APPLICATIONPROFILEID'];
 		if (!empty($config['VELOCITY_MERCHANTPROFILEID']))
 			$this->merchantprofileid = $config['VELOCITY_MERCHANTPROFILEID'];
 			
@@ -48,8 +50,8 @@ class Velocity extends PaymentModule {
 		$this->displayName = $this->l('Velocity');
 		$this->description = $this->l('Fastest and Secure transaction by Velocity northamericanbancard.');
 		$this->confirmUninstall =	$this->l('Are you sure you want to delete your details?');
-		if (!isset($this->identitytoken) || !isset($this->workflowid) || !isset($this->applicationprofileid) || !isset($this->merchantprofileid))
-			$this->warning = $this->l('Identitytoken, workflowid, applicationprofileid & merchantprofileid must be configured before using this module.');
+		if (!isset($this->workflowid) || !isset($this->merchantprofileid))
+			$this->warning = $this->l('Workflowid & merchantprofileid must be configured before using this module.');
 		if (!count(Currency::checkPaymentCurrencies($this->id)))
 			$this->warning = $this->l('No currency has been set for this module.');
 	}
@@ -62,7 +64,7 @@ class Velocity extends PaymentModule {
 	public function install() {
 		
 		/* 
-		 * check velocity order is set or not if not set then set at the time of module instalataion. 	
+		 * @brief check velocity order is set or not if not set then set at the time of module instalataion. 	
 		*/
 		$sql = 'select module_name from '._DB_PREFIX_.'order_state where module_name = "'.$this->name.'"'; 
 		if(!Db::getInstance()->getValue($sql)) {
@@ -102,7 +104,7 @@ class Velocity extends PaymentModule {
 	}
 	
 	/**
-	 * Velocity database table installation (to store the transaction details)
+	 * @brief Velocity database table installation (to store the transaction details)
 	 *
 	 * @return boolean Database table installation result
 	 */
@@ -125,26 +127,23 @@ class Velocity extends PaymentModule {
 	/**
 	 * @brief Uninstall function
 	 *
-	 * @return Success or failure
+	 * @return boolean for Success or failure
 	 */
 	public function uninstall()
 	{
 		// Uninstall parent and unregister Configuration
-		if (!Configuration::deleteByName('VELOCITY_IDENTITYTOKEN')
-				|| !Configuration::deleteByName('VELOCITY_WORKFLOWID')
-				|| !Configuration::deleteByName('VELOCITY_APPLICATIONPROFILEID')
+		if (!Configuration::deleteByName('VELOCITY_WORKFLOWID')
 				|| !Configuration::deleteByName('VELOCITY_MERCHANTPROFILEID')
 				|| !parent::uninstall())
 			return false;
 		return true;
 	}
 	
-	/* Velocity credential configuration section
+	/* @brief Velocity credential configuration section
 	 *
 	 * @return HTML page (template) to configure the Addon
 	 */
 	public function getContent() {
-	
 		if (Tools::isSubmit('btnSubmit'))
 		{
 			$this->_postValidation();
@@ -159,44 +158,54 @@ class Velocity extends PaymentModule {
 		
 		$this->_html .= $this->_displayVelocity();
 		$this->_html .= $this->renderForm();
-
+		?>
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+		<script>
+			$(document).ready(function(){
+				var check = '<?php echo Tools::getValue('VELOCITY_TESTMODE_', Configuration::get('VELOCITY_TESTMODE_')); ?>';
+				if(check == 'on') {
+					$("#VELOCITY_TESTMODE_").attr("checked","checked");
+				} else {
+					$("#VELOCITY_TESTMODE_").removeAttr("checked");
+				}
+			});
+		</script>
+		<?php
+		
 		return $this->_html;
 	}
 	
 	/* 
-	 * velocity configuration section validate before submit.
+	 * @brief velocity configuration section validate before submit.
 	 */
 	private function _postValidation() {
 	
 		if (Tools::isSubmit('btnSubmit')) {
 		
-			if (!Tools::getValue('VELOCITY_IDENTITYTOKEN'))
-				$this->_postErrors[] = $this->l('identitytoken is required.');
-			elseif (!Tools::getValue('VELOCITY_WORKFLOWID'))
+			if (!Tools::getValue('VELOCITY_WORKFLOWID'))
 				$this->_postErrors[] = $this->l('workflowid or serviceid is required.');
-			elseif (!Tools::getValue('VELOCITY_APPLICATIONPROFILEID'))
-				$this->_postErrors[] = $this->l('applicationprofileid is required.');
 			elseif (!Tools::getValue('VELOCITY_MERCHANTPROFILEID'))
 				$this->_postErrors[] = $this->l('merchantprofileid is required.');
 		}
 	}
 	
 	/* 
-	 * velocity configuration submit to save in database.
+	 * @brief velocity configuration submit to save in database.
 	 */
 	private function _postProcess()	{
 		if (Tools::isSubmit('btnSubmit'))
 		{
-			Configuration::updateValue('VELOCITY_IDENTITYTOKEN', Tools::getValue('VELOCITY_IDENTITYTOKEN'));
 			Configuration::updateValue('VELOCITY_WORKFLOWID', Tools::getValue('VELOCITY_WORKFLOWID'));
-			Configuration::updateValue('VELOCITY_APPLICATIONPROFILEID', Tools::getValue('VELOCITY_APPLICATIONPROFILEID'));
 			Configuration::updateValue('VELOCITY_MERCHANTPROFILEID', Tools::getValue('VELOCITY_MERCHANTPROFILEID'));
+			Configuration::updateValue('VELOCITY_TESTMODE_', Tools::getValue('VELOCITY_TESTMODE_'));
+			
 		}
 		$this->_html .= $this->displayConfirmation($this->l('Settings updated'));
 	}
 	
 	/* 
-	*	check cart currency valid for module.
+	*	@brief check cart currency valid for module.
+	* 	@return boolean for Success or failure
 	*/
 	public function checkCurrency($cart)
 	{
@@ -211,10 +220,10 @@ class Velocity extends PaymentModule {
 	}
 	
 	/* 
-		admin from.
+		@brief admin from display at admin side to save configuration.
 	*/
 	public function renderForm()
-	{
+	{       
 		$fields_form = array(
 			'form' => array(
 				'legend' => array(
@@ -223,12 +232,6 @@ class Velocity extends PaymentModule {
 				),
 				'input' => array(
 					array(
-						'type' => 'textarea',
-						'label' => $this->l('Identity Token'),
-						'name' => 'VELOCITY_IDENTITYTOKEN',
-						'desc' => $this->l('provided by Northamericanbancard.')
-					),
-					array(
 						'type' => 'text',
 						'label' => $this->l('WorkFlowId/ServiceId'),
 						'name' => 'VELOCITY_WORKFLOWID',
@@ -236,15 +239,23 @@ class Velocity extends PaymentModule {
 					),
 					array(
 						'type' => 'text',
-						'label' => $this->l('ApplicationProfileId'),
-						'name' => 'VELOCITY_APPLICATIONPROFILEID',
-						'desc' => $this->l('provided by Northamericanbancard.')
-					),
-					array(
-						'type' => 'text',
 						'label' => $this->l('MerchantProfileId'),
 						'name' => 'VELOCITY_MERCHANTPROFILEID',
 						'desc' => $this->l('provided by Northamericanbancard.')
+					),
+					array(
+						'type' => 'checkbox',
+						'label' => $this->l('Test Mode'),
+						'name' => 'VELOCITY_TESTMODE',
+						'desc' => $this->l('Checked if you want to test this plugin.'),
+						'values' => array(
+							'query' => array(
+								array(
+									'id' => 'test_mode',
+									'name' => $this->l('')
+								)
+							)
+						)	
 					),
 				),
 				'submit' => array(
@@ -253,6 +264,7 @@ class Velocity extends PaymentModule {
 			),
 		);
 		
+
 		$helper = new HelperForm();
 		$helper->show_toolbar = false;
 		$helper->table =  $this->table;
@@ -270,29 +282,47 @@ class Velocity extends PaymentModule {
 			'languages' => $this->context->controller->getLanguages(),
 			'id_language' => $this->context->language->id
 		); 
-
+		
 		return $helper->generateForm(array($fields_form));
 	}
 	
+	/* 
+	 * @brief create an array for velocity credential.
+	 */
 	public function getConfigFieldsValues()	{
 	
-		return array(
-			'VELOCITY_IDENTITYTOKEN' => Tools::getValue('VELOCITY_IDENTITYTOKEN', Configuration::get('VELOCITY_IDENTITYTOKEN')),
-			'VELOCITY_WORKFLOWID' => Tools::getValue('VELOCITY_WORKFLOWID', Configuration::get('VELOCITY_WORKFLOWID')),
-			'VELOCITY_APPLICATIONPROFILEID' => Tools::getValue('VELOCITY_APPLICATIONPROFILEID', Configuration::get('VELOCITY_APPLICATIONPROFILEID')),
-			'VELOCITY_MERCHANTPROFILEID' => Tools::getValue('VELOCITY_MERCHANTPROFILEID', Configuration::get('VELOCITY_MERCHANTPROFILEID')),
-		);
-		
+		if( Tools::getValue('VELOCITY_TESTMODE_', Configuration::get('VELOCITY_TESTMODE_')) == 'on') {
+			$credential = array(
+				'VELOCITY_IDENTITYTOKEN' => Velocity::$identitytoken,
+				'VELOCITY_WORKFLOWID' => Velocity::$workflowid,
+				'VELOCITY_APPLICATIONPROFILEID' => Velocity::$applicationprofileid,
+				'VELOCITY_MERCHANTPROFILEID' => Velocity::$merchantprofileid,
+				'ISTESTACCOUNT' => true,
+			);
+		} else {
+			$credential = array(
+				'VELOCITY_IDENTITYTOKEN' => Velocity::$identitytoken,
+				'VELOCITY_WORKFLOWID' => Tools::getValue('VELOCITY_WORKFLOWID', Configuration::get('VELOCITY_WORKFLOWID')),
+				'VELOCITY_APPLICATIONPROFILEID' => Velocity::$applicationprofileid,
+				'VELOCITY_MERCHANTPROFILEID' => Tools::getValue('VELOCITY_MERCHANTPROFILEID', Configuration::get('VELOCITY_MERCHANTPROFILEID')),
+				'ISTESTACCOUNT' => false,
+			);
+		}
+		return $credential;
 	}
 	
 	/* 
-		display velocity payment option at frontend.
-	*/
+	 * @brief Display the decription and logo of velocity payment at backoffice.
+	 */
 	private function _displayVelocity()	{
 	
 		return $this->display(__FILE__, 'infos.tpl');
 	}
 	
+	/* 
+	 * @brief This hook display the payment option in the list payment at frontoffice 
+	 * @return smarty template to display payment option.	
+	 */
 	public function hookPayment($params) {
 		if (!$this->active)
 			return;
@@ -308,9 +338,12 @@ class Velocity extends PaymentModule {
 		return $this->display(__FILE__, 'payment.tpl');
 	}
 	
+	/* 
+	 * @brief This hook work after gateway transaction for order confirmation detail
+	 * @return smarty template for order confirmation meaasge or trasaction failure message.
+	 */
 	public function hookOrderConfirmation($params)
 	{
-
 		if (!$this->active)
 			return;
 			
@@ -319,25 +352,45 @@ class Velocity extends PaymentModule {
 
 
 		if (isset($params['objOrder']) && Validate::isLoadedObject($params['objOrder']) && isset($params['objOrder']->valid) &&
-				 isset($params['objOrder']->reference))
+				 isset($params['objOrder']->reference) && isset($params['objOrder']->total_products) && isset($params['objOrder']->total_shipping) && isset($params['objOrder']->payment) && isset($params['currency']) && isset($params['objOrder']->current_state) && $params['objOrder']->current_state == '2')
 		{
 		   
 			$this->smarty->assign(array(
 										'id' => $params['objOrder']->id, 
 										'status' => 'ok',
-										'total_to_pay' => Tools::displayPrice($params['total_to_pay'], $params['currencyObj'], false),
+										'total_to_pay' => $params['total_to_pay'],
 										'reference' => $params['objOrder']->reference, 
+										'total_products' => $params['objOrder']->total_products, 
+										'total_shipping' => $params['objOrder']->total_shipping,
+										'currency' => $params['currency'],
+										'payment' => $params['objOrder']->payment, 
 										'valid' => $params['objOrder']->valid
 										)
 								 );
 			return $this->display(__FILE__, 'orderconfirmation.tpl');
+		} else {
+			$this->smarty->assign(array(
+										'id' => $params['objOrder']->id, 
+										'status' => 'failure',
+										'message' => 'Due to some unexpected error from gateway, payment transaction has been failed, please call admin',
+										'total_to_pay' => $params['total_to_pay'],
+										'reference' => $params['objOrder']->reference, 
+										'total_products' => $params['objOrder']->total_products, 
+										'total_shipping' => $params['objOrder']->total_shipping,
+										'currency' => $params['currency'],
+										'payment' => $params['objOrder']->payment, 
+										'valid' => $params['objOrder']->valid
+										)
+								 );
+			return $this->display(__FILE__, 'error.tpl');
 		}
 
 	}
 	
 	/* 
-	 * hook handle the request for refund.
-	*/
+	 * @brief hook handle the request for refund.
+	 * @param array $params this is hold the detail of order from order_confirmation controler.
+	 */
 	public function hookActionOrderStatusUpdate($params)
 	{ 
 		$objOrder = new Order($params['id_order']);
@@ -346,24 +399,41 @@ class Velocity extends PaymentModule {
 			$payment = OrderPayment::getByOrderId($params['id_order']);
 			if (isset($payment[0]))
 			{
-				require_once _PS_MODULE_DIR_ . 'velocity/lib/Velocity.php';
+				require_once _PS_MODULE_DIR_ . 'velocity/sdk/Velocity.php';
 				
 				/* SDK code embeded */
-				$apppfid = Tools::getValue('VELOCITY_APPLICATIONPROFILEID', Configuration::get('VELOCITY_APPLICATIONPROFILEID'));
-				$mrhtpfid = Tools::getValue('VELOCITY_MERCHANTPROFILEID', Configuration::get('VELOCITY_MERCHANTPROFILEID'));
-				$baseurl = "https://api.cert.nabcommerce.com/REST/2.0.18/";
-				$identytoken = Tools::getValue('VELOCITY_IDENTITYTOKEN', Configuration::get('VELOCITY_IDENTITYTOKEN'));
-				$workflowid = Tools::getValue('VELOCITY_WORKFLOWID', Configuration::get('VELOCITY_WORKFLOWID'));
-				$debug = true;
-				VelocityCon::setups($apppfid, $mrhtpfid, $baseurl, $identytoken, $workflowid, $debug);
+				if( Tools::getValue('VELOCITY_TESTMODE_', Configuration::get('VELOCITY_TESTMODE_')) == 'on') {
 					
+					$identitytoken = Velocity::$identitytoken;
+					$workflowid = Velocity::$workflowid;
+					$applicationprofileid = Velocity::$applicationprofileid;
+					$merchantprofileid = Velocity::$merchantprofileid;
+					$isTestAccount = true;
+					
+				} else {
+				
+					$identitytoken = Velocity::$identitytoken;
+					$workflowid = Tools::getValue('VELOCITY_WORKFLOWID', Configuration::get('VELOCITY_WORKFLOWID'));
+					$applicationprofileid = Velocity::$applicationprofileid;
+					$merchantprofileid = Tools::getValue('VELOCITY_MERCHANTPROFILEID', Configuration::get('VELOCITY_MERCHANTPROFILEID'));
+					$isTestAccount = false;
+					
+				}
+				
+				/* 
+				 * @brief create object of processor class 
+				 */
 				try {
-					// request for returnbyid
-					$obj_transaction = new Velocity_Transaction($arr = array());		
+					$obj_transaction = new Velocity_Processor( $identitytoken, $applicationprofileid, $merchantprofileid, $workflowid, $isTestAccount );
+				} catch (Exception $e) {
+					d($e->getMessage());
+				}	
+
+				try {
+					// request for returnbyid	
 					$res_returnbyid = $obj_transaction->returnById( array(
 																		  'amount' => $payment[0]->amount, 
-																		  'TransactionId' => $payment[0]->transaction_id, 
-																		  'method' => 'returnbyid'
+																		  'TransactionId' => $payment[0]->transaction_id
 																		  ) 
 																  );
 					
@@ -402,4 +472,5 @@ class Velocity extends PaymentModule {
 			}
 		}
 	}
+	
 }

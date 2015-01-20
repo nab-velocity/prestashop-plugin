@@ -41,8 +41,8 @@ class VelocityPaymentModuleFrontController extends ModuleFrontController
 		$configdata = $velocity->getConfigFieldsValues();
 		
 		/* 
-		 * set the detail to smarty .
-		*/
+		 * @brief set the detail to smarty .
+		 */
 		$this->context->smarty->assign(array(
 			'nbProducts' => $cart->nbProducts(),
 			'cust_currency' => $cart->id_currency,
@@ -50,13 +50,14 @@ class VelocityPaymentModuleFrontController extends ModuleFrontController
 			'total' => $cart->getOrderTotal(true, Cart::BOTH),
 			'address' => $address,
 			'config' => $configdata,
+			'error' => $_REQUEST['msg'],
 			'this_path' => $this->module->getPathUri(),
 			'this_path_bw' => $this->module->getPathUri(),
 			'this_path_ssl' => Tools::getShopDomainSsl(true, true).__PS_BASE_URI__.'modules/'.$this->module->name.'/'
 		));
 		
 		/* 
-		 * this template display the payment form after the cart page.
+		 * @brief this template display the payment form after the cart page.
 		*/
 		$this->setTemplate('payment_execution.tpl');
 	}
