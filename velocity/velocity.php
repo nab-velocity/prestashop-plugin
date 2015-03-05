@@ -37,12 +37,11 @@ class Velocity extends PaymentModule {
 		self::$merchantprofileid = 'PrestaShop Global HC';
 		self::$workflowid = '2317000001';
 		
-
 		$config = Configuration::getMultiple(array('VELOCITY_WORKFLOWID', 'VELOCITY_MERCHANTPROFILEID'));
 		if (!empty($config['VELOCITY_WORKFLOWID']))
-			$this->workflowid = $config['VELOCITY_WORKFLOWID'];
+			self::$workflowid = $config['VELOCITY_WORKFLOWID'];
 		if (!empty($config['VELOCITY_MERCHANTPROFILEID']))
-			$this->merchantprofileid = $config['VELOCITY_MERCHANTPROFILEID'];
+			self::$merchantprofileid  = $config['VELOCITY_MERCHANTPROFILEID'];
 			
 		$this->bootstrap = true;
 		parent::__construct();
@@ -98,7 +97,7 @@ class Velocity extends PaymentModule {
 			
 		}
 		
-		if ( !parent::install() || !$this->registerHook('payment') || !$this->registerHook('orderConfirmation') || !$this->registerHook('actionOrderStatusUpdate') || !$this->_installDb())
+		if ( !parent::install() || !$this->registerHook('payment') || !$this->registerHook('orderConfirmation') || !$this->registerHook('actionOrderStatusUpdate') || !$this->registerHook('displayAdminOrder') || !$this->_installDb())
 			return false;
 		return true;
 	}
@@ -185,7 +184,7 @@ class Velocity extends PaymentModule {
 			if (!Tools::getValue('VELOCITY_WORKFLOWID'))
 				$this->_postErrors[] = $this->l('workflowid or serviceid is required.');
 			elseif (!Tools::getValue('VELOCITY_MERCHANTPROFILEID'))
-				$this->_postErrors[] = $this->l('merchantprofileid is required.');
+				$this->_postErrors[] = $this->l('merchantprofileid is required.');	
 		}
 	}
 	
@@ -249,12 +248,9 @@ class Velocity extends PaymentModule {
 						'name' => 'VELOCITY_TESTMODE',
 						'desc' => $this->l('Checked if you want to test this plugin.'),
 						'values' => array(
-							'query' => array(
-								array(
-									'id' => 'test_mode',
-									'name' => $this->l('')
-								)
-							)
+							'query' => array('test_mode' => 1),
+							'id' => 'test_mode',
+							'name' => $this->l('')
 						)	
 					),
 				),
@@ -344,6 +340,8 @@ class Velocity extends PaymentModule {
 	 */
 	public function hookOrderConfirmation($params)
 	{
+		$context = Context::getContext();
+		
 		if (!$this->active)
 			return;
 			
@@ -372,7 +370,8 @@ class Velocity extends PaymentModule {
 			$this->smarty->assign(array(
 										'id' => $params['objOrder']->id, 
 										'status' => 'failure',
-										'message' => 'Due to some unexpected error from gateway, payment transaction has been failed, please call admin',
+										'message' => $context->cookie->key,
+										//'message' => 'Due to some unexpected error from gateway, payment transaction has been failed, please call admin',
 										'total_to_pay' => $params['total_to_pay'],
 										'reference' => $params['objOrder']->reference, 
 										'total_products' => $params['objOrder']->total_products, 
@@ -387,12 +386,25 @@ class Velocity extends PaymentModule {
 
 	}
 	
+        /* 
+	 * @brief hook display the error message in admin panel.
+	 */
+        public function hookDisplayAdminOrder()
+        {
+            $context = Context::getContext();
+            if ($context->cookie->keys != '') {
+                $error = '<div class="alert alert-danger"><button type="button" class="close" data-dismiss="alert">×</button>'.$context->cookie->keys.'</div>';
+                echo $error;
+                $this->context->cookie->__set('keys','');
+            }
+        }
+        
 	/* 
 	 * @brief hook handle the request for refund.
 	 * @param array $params this is hold the detail of order from order_confirmation controler.
 	 */
 	public function hookActionOrderStatusUpdate($params)
-	{ 
+	{
 		$objOrder = new Order($params['id_order']);
 		if( $params['newOrderStatus']->name == 'Refund' && $objOrder->payment == 'Velocity' )
 		{
@@ -424,20 +436,19 @@ class Velocity extends PaymentModule {
 				 * @brief create object of processor class 
 				 */
 				try {
-					$obj_transaction = new Velocity_Processor( $identitytoken, $applicationprofileid, $merchantprofileid, $workflowid, $isTestAccount );
-				} catch (Exception $e) {
-					d($e->getMessage());
+					$obj_transaction = new Velocity_Processor( $ident1itytoken, $applicationprofileid, $merchantprofileid, $workflowid, $isTestAccount );
+				} catch (Exception $e) {	
+                                         $this->context->cookie->__set('keys',$e->getMessage());
 				}	
 
 				try {
 					// request for returnbyid	
+					if(!is_null($obj_transaction)) {
 					$res_returnbyid = $obj_transaction->returnById( array(
-																		  'amount' => $payment[0]->amount, 
-																		  'TransactionId' => $payment[0]->transaction_id
-																		  ) 
-																  );
-					
-					
+                                                                                                'amount' => $payment[0]->amount, 
+                                                                                                'TransactionId' => $payment[0]->transaction_id
+                                                                                              ) 
+                                                                                        );
 					//d($res_returnbyid);
 					
 					/* 
@@ -453,20 +464,20 @@ class Velocity extends PaymentModule {
 					$status_code = $res_returnbyid['BankcardTransactionResponsePro']['StatusCode'];
 					
 					$transaction = array(
-											'transaction_id' => $transaction_id,
-											'transaction_status' => $transaction_state,
-											'order_id' => $order_id,
-											'response_obj' => $returnbidres
-										);
+                                                                'transaction_id' => $transaction_id,
+                                                                'transaction_status' => $transaction_state,
+                                                                'order_id' => $order_id,
+                                                                'response_obj' => $returnbidres
+                                                             );
 					if(!Db::getInstance()->autoExecute(_DB_PREFIX_.'velocity_transaction', $transaction, 'INSERT'))
 						return false;	
 									
 					} else { // stop execution if return array object.
 						return false;
 					}
-					
+				}	
 				} catch (Exception $e) {
-					d($e->getMessage());
+					$this->context->cookie->__set('keys',$e->getMessage());
 				}  
 	
 			}

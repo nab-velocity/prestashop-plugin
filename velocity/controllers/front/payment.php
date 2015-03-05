@@ -50,7 +50,7 @@ class VelocityPaymentModuleFrontController extends ModuleFrontController
 			'total' => $cart->getOrderTotal(true, Cart::BOTH),
 			'address' => $address,
 			'config' => $configdata,
-			'error' => $_REQUEST['msg'],
+			'error' => isset($_REQUEST['msg']) ? $_REQUEST['msg'] : '',
 			'this_path' => $this->module->getPathUri(),
 			'this_path_bw' => $this->module->getPathUri(),
 			'this_path_ssl' => Tools::getShopDomainSsl(true, true).__PS_BASE_URI__.'modules/'.$this->module->name.'/'

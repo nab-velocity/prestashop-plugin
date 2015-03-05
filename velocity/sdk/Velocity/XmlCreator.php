@@ -651,7 +651,6 @@ class Velocity_XmlCreator {
 	 * @return string $xml xml format in string.
 	 */
 	public static function authandcap_XML($data) {
-	
 	    if (isset($data['amount']) && isset($data['token']) && isset($data['invoice_no']) && isset($data['order_id'])) {
 		
 			$xml = new DOMDocument("1.0");
@@ -812,7 +811,7 @@ class Velocity_XmlCreator {
 			$n1->appendChild($n2);
 			
 			/*  check card data for authandcap method. */
-			if ( $data['carddata']['cardtype'] != '' && $data['carddata']['pan'] != '' && $data['carddata']['expire'] != '' && $data['carddata']['cvv'] != '' ) {
+			if (isset($data['carddata']) && is_array($data['carddata']) && isset ($data['carddata']['cardtype']) && isset($data['carddata']['pan']) && isset($data['carddata']['expire']) && isset($data['carddata']['cvv'])) {
 			
 				$n2 = $xml->createElement("ns1:CardData");
 				$n1->appendChild($n2);

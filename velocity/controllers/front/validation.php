@@ -84,9 +84,10 @@ class VelocityValidationModuleFrontController extends ModuleFrontController
 			try { 
 				$obj_transaction = new Velocity_Processor( $identitytoken, $applicationprofileid, $merchantprofileid, $workflowid, $isTestAccount );
 			} catch (Exception $e) {
-				d($e->getMessage());
-			}		
-
+			    $this->context->cookie->__set('key',$e->getMessage());
+				Tools::redirect('index.php?controller=order-confirmation&id_cart='.$cart->id.'&id_module='.$this->module->id.'&id_order='.$this->module->currentOrder.'&key='.$customer->secure_key);
+			}
+			
 			/*
 			 * @brief convert standard class array into normat php array. 
 			 */
@@ -99,7 +100,8 @@ class VelocityValidationModuleFrontController extends ModuleFrontController
 			if( $avsData['Country'] == 'US' ) {
 				$avsData['Country'] = 'USA';
 			} else {
-				d('Country Code Error : check validation controller two letter format not supported!');
+				$this->context->cookie->__set('key','Country Code Error : check validation controller two letter format not supported!');
+				Tools::redirect('index.php?controller=order-confirmation&id_cart='.$cart->id.'&id_module='.$this->module->id.'&id_order='.$this->module->currentOrder.'&key='.$customer->secure_key);
 			}
 			try {
 				/* 
@@ -107,14 +109,14 @@ class VelocityValidationModuleFrontController extends ModuleFrontController
 				*/			
 
 				$res_authandcap = $obj_transaction->authorizeAndCapture( array(
-																				'amount' => $total, 
-																				'token' => $paymentAccountDataToken, 
-																				'avsdata' => $avsData, 
-																				'carddata' => array(),
-																				'invoice_no' => '',
-																				'order_id' => $this->module->currentOrder
-																				)
-																		);
+                                                                                                'amount' => $total, 
+                                                                                                'token' => $paymentAccountDataToken, 
+                                                                                                'avsdata' => $avsData, 
+                                                                                                'carddata' => array(),
+                                                                                                'invoice_no' => '',
+                                                                                                'order_id' => $this->module->currentOrder
+                                                                                                )
+											);
 				
 				
 				//d($res_authandcap);
@@ -179,13 +181,24 @@ class VelocityValidationModuleFrontController extends ModuleFrontController
 					$history->changeIdOrderState(Configuration::get('PS_OS_ERROR'), (int)($objOrder->id));
 					$sql = 'update '._DB_PREFIX_.'order_history set id_order_state = "'.Configuration::get('PS_OS_ERROR').'" where id_order = "'.$objOrder->id.'"';
 					Db::getInstance()->execute($sql);
-						
+					
+					
+					if ( isset($res_authandcap['StatusCode']) ) {
+						$this->context->cookie->__set('key', $res_authandcap['StatusMessage']);
+					} else if ( isset($res_authandcap['ErrorResponse']['ErrorId']) && $res_authandcap['ErrorResponse']['ErrorId'] == '0' ) {
+						$this->context->cookie->__set('key', $res_authandcap['ErrorResponse']['ValidationErrors']['ValidationError']['RuleMessage']);
+					} else if ( isset($res_authandcap['ErrorResponse']['Reason']) ){
+						$this->context->cookie->__set('key', $res_authandcap['ErrorResponse']['Reason']);
+					} else {
+						$this->context->cookie->__set('key', 'Unexpected unkown error!');
+					}
 					Tools::redirect('index.php?controller=order-confirmation&id_cart='.$cart->id.'&id_module='.$this->module->id.'&id_order='.$this->module->currentOrder.'&key='.$customer->secure_key);	
 						
 				}
 				
 			} catch(Exception $e) { // for unexpected condition
-				d($e->getMessage().' please contact to side admin.');
+				$this->context->cookie->__set('key', $e->getMessage().' please contact to side admin.');
+				Tools::redirect('index.php?controller=order-confirmation&id_cart='.$cart->id.'&id_module='.$this->module->id.'&id_order='.$this->module->currentOrder.'&key='.$customer->secure_key);
 			}
 			
 		} else {
