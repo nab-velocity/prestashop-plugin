@@ -73,7 +73,7 @@
 				{rdelim});
 				
 				$("#american_express").click(function(){ldelim}
-				    $("#cardtype").val("American Express");
+				    $("#cardtype").val("AmericanExpress");
 				{rdelim});
 				
             {rdelim});

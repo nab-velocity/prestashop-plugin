@@ -436,7 +436,7 @@ class Velocity extends PaymentModule {
 				 * @brief create object of processor class 
 				 */
 				try {
-					$obj_transaction = new Velocity_Processor( $ident1itytoken, $applicationprofileid, $merchantprofileid, $workflowid, $isTestAccount );
+					$obj_transaction = new Velocity_Processor( $identi1tytoken, $applicationprofileid, $merchantprofileid, $workflowid, $isTestAccount );
 				} catch (Exception $e) {	
                                          $this->context->cookie->__set('keys',$e->getMessage());
 				}	

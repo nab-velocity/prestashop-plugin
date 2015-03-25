@@ -63,32 +63,43 @@ var Velocity = {
 						} catch (ex){
 							Velocity.complete({'code': 31, 'text': ex }, callbackfunction);
 						}
-						errobj = xmldoc.getElementsByTagName("ErrorId");
-						errmsgobj = xmldoc.getElementsByTagName("Reason");
-						errRmsgobj = xmldoc.getElementsByTagName("ValidationErrors");
-	
-						if (typeof errobj[0] != "undefined" && typeof errmsgobj[0] != "undefined" && typeof errRmsgobj[0] == "undefined") {
-							ErrorId = errobj[0].childNodes[0].nodeValue; // get Error code from response
-							reson = errmsgobj[0].childNodes[0].nodeValue; // get Error response message
-						} else if (typeof errobj[0] != "undefined" && typeof errRmsgobj[0] != "undefined") {
-							ErrorId = errobj[0].childNodes[0].nodeValue; // get error code from response
-							RuleMessage = errRmsgobj[0].childNodes[0].childNodes[2].childNodes[0].nodeValue; // get rule error response message
-						}
-					
+                                        
+                                                errobj = xmldoc.getElementsByTagName("ErrorId");
+                                                errmsgobj = xmldoc.getElementsByTagName("Reason");
+                                                valerrobj = xmldoc.getElementsByTagName("ValidationErrors");
 
-						if(typeof ErrorId != "undefined" && ErrorId == 326)
+                                                if ( typeof errobj[0] != "undefined" && typeof valerrobj[0] != "undefined" && valerrobj[0].nodeName == "ValidationErrors" ) {
+                                                        ErrorId = errobj[0].childNodes[0].nodeValue; // get error code from response
+                                                        reson = errmsgobj[0].childNodes[0].nodeValue; // get Error response message
+                                                        //RuleMessage = valerrobj[0].childNodes[0].childNodes[2].childNodes[0].nodeValue; // get rule error response message
+
+                                                        valErrors = '';
+                                                        for (i = 0; i < valerrobj[0].childNodes.length; i++) { 
+                                                                valErrors += 'Error #' + i.toString() + '<br>';
+                                                                valErrors += '	RuleKey: ' + valerrobj[0].childNodes[i].childNodes[0].childNodes[0].nodeValue + '<br>';
+                                                                valErrors += '	RuleMessage: ' + valerrobj[0].childNodes[i].childNodes[2].childNodes[0].nodeValue + '<br>';
+                                                        }
+
+
+                                                } else if ( typeof errobj[0] != "undefined" && typeof errmsgobj[0] != "undefined" ) {
+                                                        ErrorId = errobj[0].childNodes[0].nodeValue; // get Error code from response
+                                                        reson = errmsgobj[0].childNodes[0].nodeValue; // get Error response message
+                                                }
+
+						if( typeof ErrorId != "undefined" && ErrorId == 326 )
 							Velocity.complete({'code': ErrorId, 'text': reson}, callbackfunction)
 						else if(typeof ErrorId != "undefined" && ErrorId == 9999)
 							Velocity.complete({'code': ErrorId, 'text': reson}, callbackfunction)
 						else if(typeof ErrorId != "undefined" && ErrorId == 0)
-							Velocity.complete({'code': ErrorId+30, 'text': RuleMessage}, callbackfunction)
+							Velocity.complete({'code': ErrorId+30, 'text': valErrors}, callbackfunction)
 						else if(typeof verifyresponse.status != "undefined" && verifyresponse.status !== 200)
 							Velocity.complete({'code': verifyresponse.status, 'text': 'Validation Errors Occurred' }, callbackfunction)
 						else {
 							// get xml response after verification.
 							objsc = xmldoc.getElementsByTagName("StatusCode");
 							objs = xmldoc.getElementsByTagName("Status");
-							objpadt = xmldoc.getElementsByTagName("PaymentAccountDataToken");
+							objstmsg = xmldoc.getElementsByTagName("StatusMessage");
+                                                        objpadt = xmldoc.getElementsByTagName("PaymentAccountDataToken");
 							objCVResult = xmldoc.getElementsByTagName("CVResult");
 							objAVSResult = xmldoc.getElementsByTagName("AVSResult");
 						
@@ -100,7 +111,9 @@ var Velocity = {
 							// get status from response
 							if(typeof objs[0] != 'undefined' && objs[0].childNodes[0].nodeValue == 'Successful'){
 							  Status = objs[0].childNodes[0].nodeValue;
-							}else{
+							} else if (typeof objs[0] != 'undefined' && objs[0].childNodes[0].nodeValue != 'Successful') {
+                                                           Velocity.complete({'code': StatusCode, 'text': objstmsg[0].childNodes[0].nodeValue }, callbackfunction) 
+                                                        }else{
 							  Velocity.complete({'code': 21, 'text': 'Invalid account detail.' }, callbackfunction)
 							}
 							
