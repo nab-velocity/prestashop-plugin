@@ -18,7 +18,7 @@
 *}
 
 {if $status == 'failure'}
-<p>{$message}</p>
+    <p>{$message}</p>
 {else}
 <p class="warning">
 	{l s='We noticed a problem with your order. If you think this is an error, feel free to contact our' mod='velocity'} 

@@ -35,7 +35,7 @@ var Velocity = {
 
                 // Validate HTTP Status code
                 if (sessiontokenobj.status == 400)
-                    Velocity.complete({'code': sessiontokenobj.status, 'text': 'An invalid security token was provided(Identity Token)' }, callbackfunction)
+                    Velocity.complete({'code': sessiontokenobj.status, 'text': 'Your order cannot be completed at this time. Please contact customer care. Error Code 8124' }, callbackfunction)
 				else if (sessiontokenobj.status == 401)
 				    Velocity.complete({'code': sessiontokenobj.status, 'text': 'Unauthorized request may be Identity Token is not correct' }, callbackfunction)
 				else if (typeof sessiontokenobj.status != "undefined" && sessiontokenobj.status != 200)
@@ -74,10 +74,12 @@ var Velocity = {
                                                         //RuleMessage = valerrobj[0].childNodes[0].childNodes[2].childNodes[0].nodeValue; // get rule error response message
 
                                                         valErrors = '';
+                                                        Errcount = 0;
                                                         for (i = 0; i < valerrobj[0].childNodes.length; i++) { 
                                                                 valErrors += 'Error #' + i.toString() + '<br>';
                                                                 valErrors += '	RuleKey: ' + valerrobj[0].childNodes[i].childNodes[0].childNodes[0].nodeValue + '<br>';
                                                                 valErrors += '	RuleMessage: ' + valerrobj[0].childNodes[i].childNodes[2].childNodes[0].nodeValue + '<br>';
+                                                                Errcount += 1;
                                                         }
 
 
@@ -86,13 +88,21 @@ var Velocity = {
                                                         reson = errmsgobj[0].childNodes[0].nodeValue; // get Error response message
                                                 }
 
-						if( typeof ErrorId != "undefined" && ErrorId == 326 )
+						if( typeof ErrorId != "undefined" && ErrorId == 326 ) {
+                                                    if(reson == 'ApplicationProfileId is not valid.')
+                                                        reson = 'Your order cannot be completed at this time. Please contact customer care. Error Code 1010';
+                                                    reson = reson.split(':');
+                                                    reson = reson[0];
+                                                    if(reson == 'Unable to find BankcardService for service id')
+                                                        reson = 'Your order cannot be completed at this time. Please contact customer care. Error Code 9621';
 							Velocity.complete({'code': ErrorId, 'text': reson}, callbackfunction)
-						else if(typeof ErrorId != "undefined" && ErrorId == 9999)
+                                                } else if(typeof ErrorId != "undefined" && ErrorId == 9999)
 							Velocity.complete({'code': ErrorId, 'text': reson}, callbackfunction)
-						else if(typeof ErrorId != "undefined" && ErrorId == 0)
+						else if(typeof ErrorId != "undefined" && ErrorId == 0) {
+                                                     if(Errcount == 13)
+                                                         valErrors = 'Your order cannot be completed at this time. Please contact customer care. Error Code 2408';
 							Velocity.complete({'code': ErrorId+30, 'text': valErrors}, callbackfunction)
-						else if(typeof verifyresponse.status != "undefined" && verifyresponse.status !== 200)
+                                                } else if(typeof verifyresponse.status != "undefined" && verifyresponse.status !== 200)
 							Velocity.complete({'code': verifyresponse.status, 'text': 'Validation Errors Occurred' }, callbackfunction)
 						else {
 							// get xml response after verification.
