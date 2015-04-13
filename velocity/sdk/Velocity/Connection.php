@@ -71,14 +71,13 @@ class Velocity_Connection
 		try { 
 														
 			list($error, $response) = $this->get('SvcInfo/token', 
-													array(
-														'sessiontoken' => Velocity_Processor::$identitytoken, 
-														'xml' => '', 
-														'method' => 'SignOn'
-													)
-												 ); 
-			if ( $error == NULL && $response != '' )
-			          
+                                                                                array(
+                                                                                        'sessiontoken' => Velocity_Processor::$identitytoken, 
+                                                                                        'xml' => '', 
+                                                                                        'method' => 'SignOn'
+                                                                                )
+                                                                         ); 
+			if ( $error == NULL && $response != '' )          
 				return $response;
 			else
 				throw new Exception( Velocity_Message::$descriptions['errsignon'] );
