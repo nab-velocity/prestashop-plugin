@@ -168,13 +168,20 @@ class Velocity_Connection
 		else
 			$expected_response = "200";
 		
-		$res = curl_exec($ch);
-		
-		list($header, $body) = explode("\r\n\r\n", $res, 2);
-			
-		$statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-		curl_close($ch);
-		
+                try {
+                    
+                    $res = curl_exec($ch);   
+                    list($header, $body) = explode("\r\n\r\n", $res, 2);
+                    if (strpos($header,"100 Continue") !== false) {
+                        list($header, $body) = explode("\r\n\r\n", $body, 2);
+                    }   
+                    $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                    curl_close($ch);
+                } catch (Exception $ex) {
+                    curl_close($ch);
+                    throw new Exception($ex->getMessage());
+                }
+                
 		/* if ( $data['method'] == 'SignOn' && $body != '' )
 			return $body; */
 		

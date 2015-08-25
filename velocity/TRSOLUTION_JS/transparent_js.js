@@ -17,7 +17,7 @@ var Velocity = {
     },
 	// this method perform all transaction request like session token generation and verify request.
     tokenizeForm: function(identitytoken, card, address, applicationprofileid, merchantprofileid, workflowid, callbackfunction) {
-	
+
 		var identitytoken = Velocity.base64_encode(identitytoken+":");
         var sessiontokenobj = Velocity.getSessionToken(identitytoken, callbackfunction);
 
