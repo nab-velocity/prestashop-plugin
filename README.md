@@ -20,9 +20,11 @@ Velocity Prestashop Module Installation Documentation
 	After successful installation, module configuration page open for save your configuration and test the module.
 
 VELOCITY CREDENTIAL DETAILS
-1.	WorkFlowId/ServiceId: - This is provided by velocity to merchant.
-2.	MerchantProfileId: - This is provided by velocity to merchant.
-3.	Test Mode :- This is for test the module, if checked the checkbox then test mode enable and no need to save “WorkFlowId/ServiceId & MerchantProfileId” otherwise unchecked the checkbox and save  “WorkFlowId/ServiceId & MerchantProfileId” for live payment.
+1.	IdentityToken: - This is long lived security token provided by velocity to merchant.
+2.	WorkFlowId/ServiceId: - This is service id provided by velocity to merchant.
+3.	ApplicationProfileId: - This is application id provided by velocity to merchant.
+4.	MerchantProfileId: - This is merchant id provided by velocity to merchant.
+5.	Test Mode :- This is for test the module, if checked the checkbox then test mode enable and no need to save “WorkFlowId/ServiceId & MerchantProfileId” otherwise unchecked the checkbox and save  “WorkFlowId/ServiceId & MerchantProfileId” for live payment.
 
 
 

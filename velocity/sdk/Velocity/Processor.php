@@ -47,7 +47,7 @@ class Velocity_Processor
 				$xml = Velocity_XmlCreator::verify_XML($options);  // got Verify xml object.
 				$xml->formatOutput = TRUE;
 				$body = $xml->saveXML();
-				//echo '<xmp>'.$body.'</xmp>'; die;
+				echo '<xmp>'.$body.'</xmp>'; die;
 				list($error, $response) = $this->connection->post(
                                                                                     $this->path(
                                                                                             self::$workflowid, 
@@ -60,6 +60,8 @@ class Velocity_Processor
                                                                                             'method' => self::$Txn_method[0]
                                                                                     )
                                                                                  );
+                                echo '<pre>'; print_r($response); echo '</pre>';
+                                echo '<pre>'; print_r($error); echo '</pre>';die;
 				return $this->handleResponse($error, $response);
 				//return $response;
 			} catch (Exception $e) {
@@ -88,7 +90,7 @@ class Velocity_Processor
 				$xml = Velocity_XmlCreator::authandcap_XML($options);  // got authorizeandcapture xml object. 
 				$xml->formatOutput = TRUE;
 				$body = $xml->saveXML();
-				//echo '<xmp>'.$body.'</xmp>';
+				//echo '<xmp>'.$body.'</xmp>'; die;
 				list($error, $response) = $this->connection->post(
                                                                                     $this->path(
                                                                                             self::$workflowid, 
