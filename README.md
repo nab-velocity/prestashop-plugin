@@ -3,7 +3,7 @@ Velocity Prestashop Module Installation Documentation
 
 
 
-1.	Download velocity Prestashop Module, zipped file from velocity gateways.
+1.	Download velocity Prestashop Module by clicking on Download zip button on the right bottom of this page.
 
 2.	Configuration Requirement: Prestashop site Version 1.6.0 or above version must be required for our velocity payment module installation.
 

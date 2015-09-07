@@ -101,20 +101,38 @@ class Velocity extends PaymentModule {
 	 *
 	 * @return boolean Database table installation result
 	 */
-	 
 	private function _installDb()
 	{
-		$status = Db::getInstance()->Execute('
-		CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'velocity_transaction` (
-			`id_velocity` int(11) NOT NULL AUTO_INCREMENT,
-			`transaction_id` varchar(220) NOT NULL,
-			`transaction_status` varchar(220) NOT NULL,
-			`order_id` varchar(32) NOT NULL,
-			`response_obj` text NOT NULL,
-		PRIMARY KEY (`id_velocity`))
-		ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8 AUTO_INCREMENT=1');
-		
-		return $status;
+            $field = Db::getInstance()->ExecuteS("show tables like '%velocity_transaction'");
+
+            if ($field == NULL) {
+                $status = Db::getInstance()->Execute('
+                CREATE TABLE `'._DB_PREFIX_.'velocity_transaction` (
+                `id_velocity` int(11) NOT NULL AUTO_INCREMENT,
+                `transaction_id` varchar(220) NOT NULL,
+                `transaction_status` varchar(220) NOT NULL,
+                `order_id` varchar(32) NOT NULL,
+                `request_obj` text NOT NULL,
+                `response_obj` text NOT NULL,
+                PRIMARY KEY (`id_velocity`))
+                ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8 AUTO_INCREMENT=1');
+            } else {
+                foreach($field[0] as $key => $val) {
+                    $tablename = $val;
+                }
+                $fields = Db::getInstance()->ExecuteS("SHOW COLUMNS FROM " . $tablename);
+
+                $count     = 0;
+                foreach ($fields as $key => $val) {
+                    if ($val['Field'] == 'request_obj'){
+                        $count += 1;
+                    }
+                }
+                if ($count == 0) {
+                    $status = Db::getInstance()->Execute("ALTER TABLE " . $tablename . " add request_obj text");
+                }
+            }
+            return $status;
 	}
 
 	/**
@@ -406,7 +424,7 @@ class Velocity extends PaymentModule {
 	 * @param array $params this is hold the detail of order from order_confirmation controler.
 	 */
         public function hookActionProductCancel($params) {
-            
+
             $genrate_slip = isset($_REQUEST['generateCreditSlip']) ? $_REQUEST['generateCreditSlip'] : '';
             $shipping_back = isset($_REQUEST['shippingBack']) ? $_REQUEST['shippingBack'] : '';
             $generate_discount = isset($_REQUEST['generateDiscount']) ? $_REQUEST['generateDiscount'] : '';
@@ -477,25 +495,29 @@ class Velocity extends PaymentModule {
                                                                                     'amount' => $refund_cast, 
                                                                                     'TransactionId' => $payment[0]->transaction_id
                                                                                   ) 
-                                                                            );
+                                                                            ); 
 
                             /* 
                              * check the gateway response and save gateway response in database. 	
                             */
                             if ( gettype($res_returnbyid) == 'array' || isset($res_returnbyid['BankcardTransactionResponsePro']['StatusCode'])) {
 
-                            $returnbidres = json_encode($res_returnbyid);
-                            $transaction_id = $res_returnbyid['BankcardTransactionResponsePro']['TransactionId'];
+                            $returnbidres      = json_encode($res_returnbyid);
+                            $transaction_id    = $res_returnbyid['BankcardTransactionResponsePro']['TransactionId'];
                             $transaction_state = $res_returnbyid['BankcardTransactionResponsePro']['TransactionState'];
-                            $order_id = $res_returnbyid['BankcardTransactionResponsePro']['OrderId'];
-                            $status = $res_returnbyid['BankcardTransactionResponsePro']['Status'];
-                            $status_code = $res_returnbyid['BankcardTransactionResponsePro']['StatusCode'];
-
+                            $order_id          = $res_returnbyid['BankcardTransactionResponsePro']['OrderId'];
+                            $status            = $res_returnbyid['BankcardTransactionResponsePro']['Status'];
+                            $status_code       = $res_returnbyid['BankcardTransactionResponsePro']['StatusCode'];
+                            $xml               = Velocity_XmlCreator::returnById_XML($refund_cast, $payment[0]->transaction_id);  // got ReturnById xml object. 
+			    $req_obj           = $xml->saveXML();
+                            $req_obj           = serialize($req_obj);
+                            
                             $transaction = array(
-                                                    'transaction_id' => $transaction_id,
+                                                    'transaction_id'     => $transaction_id,
                                                     'transaction_status' => $transaction_state,
-                                                    'order_id' => $order_id,
-                                                    'response_obj' => $returnbidres
+                                                    'order_id'           => $order_id,
+                                                    'request_obj'        => $req_obj,
+                                                    'response_obj'       => $returnbidres
                                                  );
                             
                             if(!Db::getInstance()->autoExecute(_DB_PREFIX_.'velocity_transaction', $transaction, 'INSERT'))

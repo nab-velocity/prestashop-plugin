@@ -118,22 +118,34 @@ class VelocityValidationModuleFrontController extends ModuleFrontController
 
                     if ( gettype($res_authandcap) == 'array' && isset($res_authandcap['BankcardTransactionResponsePro']['StatusCode']) && $res_authandcap['BankcardTransactionResponsePro']['StatusCode'] == '000') { // check the response of gateway.
 
-                            $authcapres = json_encode($res_authandcap);
-                            $transaction_id = $res_authandcap['BankcardTransactionResponsePro']['TransactionId'];
+                            $authcapres        = json_encode($res_authandcap);
+                            $transaction_id    = $res_authandcap['BankcardTransactionResponsePro']['TransactionId'];
                             $transaction_state = $res_authandcap['BankcardTransactionResponsePro']['TransactionState'];
-                            $order_id = $res_authandcap['BankcardTransactionResponsePro']['OrderId'];
+                            $order_id          = $res_authandcap['BankcardTransactionResponsePro']['OrderId'];
 
                             /* 
                              * @brief here we validate our order.
                              */
                             $this->module->validateOrder($cart->id, Configuration::get('PS_OS_VELOCITY'), $total, $this->module->displayName, NULL, array(), (int)$currency->id, false, $customer->secure_key);
 
-
+                            $xml         = Velocity_XmlCreator::authandcap_XML(
+                                                                                array(
+                                                                                    'amount'     => $total, 
+                                                                                    'token'      => $paymentAccountDataToken, 
+                                                                                    'avsdata'    => $avsData, 
+                                                                                    'carddata'   => array(),
+                                                                                    'invoice_no' => '',
+                                                                                    'order_id'   => $this->module->currentOrder
+                                                                                    )
+                                                                                );  // got authorizeandcapture xml object. 
+			    $req_obj     = $xml->saveXML();
+                            $req_obj     = serialize($req_obj);
                             $transaction = array(
-                                                'transaction_id' => $transaction_id,
+                                                'transaction_id'     => $transaction_id,
                                                 'transaction_status' => $transaction_state,
-                                                'order_id' => $order_id,
-                                                'response_obj' => $authcapres
+                                                'order_id'           => $order_id,
+                                                'request_obj'        => $req_obj,
+                                                'response_obj'       => $authcapres
                                         );
                             if(!Db::getInstance()->autoExecute(_DB_PREFIX_.'velocity_transaction', $transaction, 'INSERT')) // save response in database
                                     return false;	
@@ -164,11 +176,25 @@ class VelocityValidationModuleFrontController extends ModuleFrontController
                             */
                             $this->module->validateOrder($cart->id, Configuration::get('PS_OS_ERROR'), $total, $this->module->displayName, NULL, array(), (int)$currency->id, false, $customer->secure_key);
                             $authcapres = serialize($res_authandcap);
+                            
+                            $xml         = Velocity_XmlCreator::authandcap_XML(
+                                                                                array(
+                                                                                    'amount'     => $total, 
+                                                                                    'token'      => $paymentAccountDataToken, 
+                                                                                    'avsdata'    => $avsData, 
+                                                                                    'carddata'   => array(),
+                                                                                    'invoice_no' => '',
+                                                                                    'order_id'   => $this->module->currentOrder
+                                                                                    )
+                                                                                );  // got authorizeandcapture xml object. 
+			    $req_obj     = $xml->saveXML();
+                            $req_obj     = serialize($req_obj);
                             $transaction = array(
-                                                                            'transaction_id' => '',
+                                                                            'transaction_id'     => '',
                                                                             'transaction_status' => $res_authandcap->name,
-                                                                            'order_id' => $this->module->currentOrder,
-                                                                            'response_obj' => $authcapres
+                                                                            'order_id'           => $this->module->currentOrder,
+                                                                            'request_obj'        => $req_obj,
+                                                                            'response_obj'       => $authcapres
                                                                     );
                             if(!Db::getInstance()->autoExecute(_DB_PREFIX_.'velocity_transaction', $transaction, 'INSERT')) // save response in database
                                     return false;	
