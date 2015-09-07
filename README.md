@@ -26,5 +26,5 @@ VELOCITY CREDENTIAL DETAILS
 4.	MerchantProfileId: - This is merchant id provided by velocity to merchant.
 5.	Test Mode :- This is for test the module, if checked the checkbox then test mode enable and no need to save “WorkFlowId/ServiceId & MerchantProfileId” otherwise unchecked the checkbox and save  “WorkFlowId/ServiceId & MerchantProfileId” for live payment.
 
-
+4.  We have saved the raw request and response objects in &lt;prefix&gt;_velocity_transaction table.
 
