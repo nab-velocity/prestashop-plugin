@@ -58,7 +58,7 @@ class VelocityPaymentModuleFrontController extends ModuleFrontController
 		
 		/* 
 		 * @brief this template display the payment form after the cart page.
-		*/
+		 */
 		$this->setTemplate('payment_execution.tpl');
 	}
 }

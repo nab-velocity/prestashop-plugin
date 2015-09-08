@@ -3,7 +3,7 @@ Velocity Prestashop Module Installation Documentation
 
 
 
-1.	Download velocity Prestashop Module, zipped file from velocity gateways.
+1.	Download velocity Prestashop Module by clicking on Download zip button on the right bottom of this page.
 
 2.	Configuration Requirement: Prestashop site Version 1.6.0 or above version must be required for our velocity payment module installation.
 
@@ -26,5 +26,5 @@ VELOCITY CREDENTIAL DETAILS
 4.	MerchantProfileId: - This is merchant id provided by velocity to merchant.
 5.	Test Mode :- This is for test the module, if checked the checkbox then test mode enable and no need to save “WorkFlowId/ServiceId & MerchantProfileId” otherwise unchecked the checkbox and save  “WorkFlowId/ServiceId & MerchantProfileId” for live payment.
 
-
+4.  We have saved the raw request and response objects in &lt;prefix&gt;_velocity_transaction table.
 
