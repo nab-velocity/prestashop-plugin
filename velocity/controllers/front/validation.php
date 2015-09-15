@@ -90,9 +90,10 @@ class VelocityValidationModuleFrontController extends ModuleFrontController
                 $avsData = array();
                 if($avsdata != null) {
                     foreach($avsdata as $key => $value) {
-                            $avsData[$key] = $value; 
+                        $avsData[$key] = $value; 
                     }
                 }
+                
                 if( $avsData['Country'] == 'US' ) { 
                     $avsData['Country'] = 'USA';
                 } else {
@@ -100,6 +101,7 @@ class VelocityValidationModuleFrontController extends ModuleFrontController
                     $this->module->validateOrder($cart->id, Configuration::get('PS_OS_ERROR'), $total, $this->module->displayName, NULL, array(), (int)$currency->id, false, $customer->secure_key);
                     Tools::redirect('index.php?controller=order-confirmation&id_cart='.$cart->id.'&id_module='.$this->module->id.'&id_order='.$this->module->currentOrder.'&key='.$customer->secure_key);
                 }
+                
                 try {
                     /* 
                      * @brief request for authorizeandcapture method for payment.
