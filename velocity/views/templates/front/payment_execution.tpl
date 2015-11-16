@@ -113,14 +113,14 @@
 	<div class="form-group">
 		<label class="control-label col-lg-3">Card holder name</label>
 		<div class="col-lg-9 ">
-		<input id="card_holder_name" size="30" type="text" value="ashish" class="form-control"/>
+		<input id="card_holder_name" size="30" type="text" value="" class="form-control"/>
 		</div>
 	</div>
 
 	<div class="form-group">
 		<label class="control-label col-lg-3">Credit Card Number: </label>
 		<div class="col-lg-9 ">
-		<input id="cc-number" type="text" maxlength="16" autocomplete="off" value="4012888812348882" autofocus  class="form-control"/>
+		<input id="cc-number" type="text" maxlength="16" autocomplete="off" value="" autofocus  class="form-control"/>
 		</div>
 	</div>
                
@@ -128,7 +128,7 @@
 	<div class="form-group">
 		<label class="control-label col-lg-3">CVC: </label>
 		<div class="col-lg-9 ">
-		<input id="cc-cvc" type="text" maxlength="4" autocomplete="off" value="123" class="form-control"/>
+		<input id="cc-cvc" type="text" maxlength="4" autocomplete="off" value="" class="form-control"/>
 		</div>
 	</div>
 
